@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create Group for {{ class_obj.name }}</h1>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group Name</label>
+                    {{ form.name }}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group Password</label>
+                    {{ form.password }}
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Share this with whitelisted members</p>
+                </div>
+                
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+                    Create Group
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

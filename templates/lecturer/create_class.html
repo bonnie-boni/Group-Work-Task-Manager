@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Class{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Create New Class</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Set up a new classroom for your students</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label for="id_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Class Name
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Class Password
+                </label>
+                {{ form.password }}
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Students will need this password to join groups in this class</p>
+                {% if form.password.errors %}
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                <button type="submit" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold w-full sm:w-auto text-center">
+                    Create Class
+                </button>
+                <a href="{% url 'lecturer_dashboard' %}" 
+                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold w-full sm:w-auto text-center dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

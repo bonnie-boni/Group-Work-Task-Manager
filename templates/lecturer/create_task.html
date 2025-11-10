@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Task{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create New Task</h1>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.task_type.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Type</label>
+                    {{ form.task_type }}
+                    {% if form.task_type.errors %}<p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ form.task_type.errors.0 }}</p>{% endif %}
+                </div>
+                
+                <div id="description-field" style="display: none;">
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ form.description.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div id="file-upload-field" style="display: none;">
+                    <label for="{{ form.task_file.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload File</label>
+                    {{ form.task_file }}
+                    {% if form.task_file.errors %}<p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ form.task_file.errors.0 }}</p>{% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date (Optional)</label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}<p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ form.due_date.errors.0 }}</p>{% endif %}
+                </div>
+                
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+                    Create Task
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const taskTypeSelect = document.getElementById('id_task_type');
+        const descriptionField = document.getElementById('description-field');
+        const fileUploadField = document.getElementById('file-upload-field');
+
+        function toggleTaskFields() {
+            if (taskTypeSelect.value === 'text') {
+                descriptionField.style.display = 'block';
+                fileUploadField.style.display = 'none';
+            } else if (taskTypeSelect.value === 'file') {
+                descriptionField.style.display = 'none';
+                fileUploadField.style.display = 'block';
+            }
+        }
+
+        taskTypeSelect.addEventListener('change', toggleTaskFields);
+        toggleTaskFields(); // Set initial state
+    });
+</script>
+</div>
+{% endblock %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const taskTypeSelect = document.getElementById('id_task_type');
+        const descriptionField = document.getElementById('id_description-field');
+        const fileUploadField = document.getElementById('id_task_file-field');
+
+        function toggleTaskFields() {
+            if (taskTypeSelect.value === 'text') {
+                descriptionField.style.display = 'block';
+                fileUploadField.style.display = 'none';
+            } else if (taskTypeSelect.value === 'file') {
+                descriptionField.style.display = 'none';
+                fileUploadField.style.display = 'block';
+            } else {
+                descriptionField.style.display = 'none';
+                fileUploadField.style.display = 'none';
+            }
+        }
+
+        taskTypeSelect.addEventListener('change', toggleTaskFields);
+        toggleTaskFields(); // Set initial state
+    });
+</script>

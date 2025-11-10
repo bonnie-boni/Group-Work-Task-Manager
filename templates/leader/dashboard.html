@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Leader Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Group Leader Dashboard</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Manage your groups and coordinate with members</p>
+</div>
+
+<div class="mb-4 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+    <a href="{% url 'join_class' %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center">
+        Join Class
+    </a>
+    <a href="{% url 'create_group' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">
+        Create New Group
+    </a>
+</div>
+
+{% if joined_class %}
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Joined Class</h2>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ joined_class.name }}</h3>
+    </div>
+</div>
+{% endif %}
+
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Groups You Lead</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for group in led_groups %}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ group.name }}</h3>
+            <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+                <p><strong>Class:</strong> {{ group.class_obj.name }}</p>
+                <p><strong>Members:</strong> {{ group.members|length }}</p>
+                <p><strong>Whitelisted:</strong> {{ group.whitelist_emails|length }}</p>
+            </div>
+            <a href="{% url 'group_detail' group.id %}" 
+               class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 font-semibold">
+                Manage Group →
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
+            <p class="text-gray-500 dark:text-gray-400">No groups yet. Join a class and create a group!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Your Group Memberships</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for group in member_groups %}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ group.name }}</h3>
+            <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <p><strong>Class:</strong> {{ group.class_obj.name }}</p>
+                <p><strong>Members:</strong> {{ group.members|length }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

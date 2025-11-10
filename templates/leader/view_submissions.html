@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Submissions for {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Submissions for "{{ task.title }}"</h1>
+    <p class="text-gray-600 dark:text-gray-400">Group: {{ group.name }}</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Task ID: {{ task.id }}</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Due Date: {{ task.due_date|date:"F j, Y, P" }}</p>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Individual Submissions ({{ submissions|length }})</h2>
+    
+    {% if submissions %}
+    <div class="mb-4">
+        <button type="button" id="copyAllSubmissions" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">
+            Copy All Submissions
+        </button>
+    </div>
+    <div class="space-y-4">
+        {% for sub_data in submissions %}
+        {% with submission=sub_data.submission member_email=sub_data.member_email %}
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">Member: {{ member_email }}</p>
+            <p class="text-gray-600 dark:text-gray-400">Submitted: {{ submission.submitted_at|date:"F j, Y, P" }}
+                {% if submission.last_edited_at and submission.last_edited_at|date:"U" != submission.submitted_at|date:"U" %}
+                    <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded dark:bg-yellow-700 dark:text-yellow-100">Edited</span>
+                {% endif %}
+            </p>
+            <p class="text-gray-600 dark:text-gray-400">Status: {{ submission.status|capfirst }}</p>
+            
+            {% if submission.text_answer %}
+            <div class="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg submission-text-answer">
+                <h4 class="font-medium text-gray-800 dark:text-gray-200">Answer:</h4>
+                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap" id="submission-{{ submission.id }}">{{ submission.text_answer }}</p>
+                <button type="button" class="copy-single-submission bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-lg text-xs mt-2" data-submission-id="submission-{{ submission.id }}">
+                    Copy This Submission
+                </button>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-600 dark:text-gray-400">No individual submissions yet for this task.</p>
+    {% endif %}
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Compile and Send to Lecturer</h2>
+    
+    <form method="post" action="{% url 'leader_send_compiled_work' group.id task.id %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="{{ compiled_text_form.compiled_text.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Compiled Work:
+            </label>
+            {{ compiled_text_form.compiled_text }}
+            {% if compiled_text_form.compiled_text.errors %}
+                {% for error in compiled_text_form.compiled_text.errors %}
+                    <p class="text-red-500 text-xs italic">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Copy and paste individual member submissions above. This will be compiled into a single PDF and sent to the lecturer.
+            </p>
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg w-full sm:w-auto">
+            Send to Lecturer
+        </button>
+    </form>
+
+    {% if compiled_submission %}
+    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Previously Sent Compiled Work</h3>
+        <p class="text-gray-600 dark:text-gray-400">Compiled on: {{ compiled_submission.compiled_at|date:"F j, Y, P" }}</p>
+        <div class="mt-4">
+            <a href="{% url 'download_compiled' group.id task.id %}"
+               class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-center">
+                Download Compiled PDF
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="mt-6">
+    <a href="{% url 'group_detail' group.id %}" class="text-blue-600 dark:text-blue-400 hover:underline">
+        &larr; Back to Group Detail
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('copyAllSubmissions').addEventListener('click', function() {
+        let allSubmissionsText = '';
+        document.querySelectorAll('.submission-text-answer p').forEach((p, index) => {
+            allSubmissionsText += `--- Member Submission ${index + 1} ---\n`;
+            allSubmissionsText += p.textContent.trim() + '\n\n';
+        });
+        
+        const compiledTextarea = document.getElementById('id_compiled_text');
+        if (compiledTextarea) {
+            compiledTextarea.value = allSubmissionsText;
+            // Optional: Notify user that text has been copied/pasted
+            alert('All submissions copied to the compilation textarea!');
+        } else {
+            alert('Compilation textarea not found.');
+        }
+    });
+
+    document.querySelectorAll('.copy-single-submission').forEach(button => {
+        button.addEventListener('click', function() {
+            const submissionId = this.dataset.submissionId;
+            const submissionText = document.getElementById(submissionId).textContent;
+            
+            navigator.clipboard.writeText(submissionText).then(() => {
+                alert('Submission copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy submission.');
+            });
+        });
+    });
+</script>
+{% endblock %}
