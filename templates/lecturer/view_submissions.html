@@ -5,17 +5,17 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ task.title }} - Submissions</h1>
-    <p class="text-gray-600 dark:text-gray-400 mt-2">{{ task.description }}</p>
+    <h1 class="text-3xl font-bold">{{ task.title }} - Submissions</h1>
+    <p class="text-gray-600 mt-2">{{ task.description }}</p>
 </div>
 
 <div class="space-y-4">
     {% for group in groups %}
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div class="mb-4 sm:mb-0">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ group.name }}</h3>
-                <p class="text-gray-600 dark:text-gray-400">Members: {{ group.members|length }}</p>
+                <h3 class="text-xl font-bold">{{ group.name }}</h3>
+                <p class="text-gray-600">Members: {{ group.members|length }}</p>
             </div>
             
             {% if submission_map|get_item:group.id %}
@@ -24,7 +24,7 @@
                 Download PDF
             </a>
             {% else %}
-            <span class="text-gray-500 dark:text-gray-400 w-full sm:w-auto text-center">Not submitted</span>
+            <span class="text-gray-500 w-full sm:w-auto text-center">Not submitted</span>
             {% endif %}
         </div>
     </div>

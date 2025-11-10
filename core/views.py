@@ -2,7 +2,6 @@
 Views for Classroom Management System
 """
 import os
-from datetime import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse, FileResponse, Http404
@@ -17,10 +16,10 @@ from .models import (
 from .forms import (
     LoginForm, RegisterForm, ClassForm, TaskForm,
     GroupForm, WhitelistEmailForm, TaskDivisionForm,
-    SubmissionForm, JoinClassForm, CompiledTextSubmissionForm
+    SubmissionForm, JoinClassForm
 )
 from .decorators import login_required, lecturer_required, leader_required
-from .pdf_utils import generate_member_pdf, compile_group_pdf, get_submission_pdf_path
+from .pdf_utils import generate_member_pdf, compile_group_pdf, get_submission_pdf_path, generate_compiled_pdf_from_text
 from django.conf import settings
 import mimetypes # Move this import to the top
 
@@ -119,25 +118,8 @@ def lecturer_dashboard(request):
     user_id = request.session.get('user_id')
     classes = ClassModel.get_by_lecturer(user_id)
     
-    augmented_classes = []
-    for class_obj in classes:
-        group_count = GroupModel.objects(class_obj=str(class_obj.id)).count()
-        task_count = TaskModel.objects(class_obj=str(class_obj.id)).count()
-        member_count = len(class_obj.members) # Assuming members is a ListField of References
-
-        # Get task IDs for the current class
-        task_ids_in_class = [str(task.id) for task in TaskModel.objects(class_obj=str(class_obj.id))]
-        # Count compiled submissions where the task ID is in the list of task IDs for this class
-        compiled_submission_count = CompiledSubmissionModel.objects(task__in=task_ids_in_class).count()
-        
-        class_obj.group_count = group_count
-        class_obj.task_count = task_count
-        class_obj.member_count = member_count
-        class_obj.compiled_submission_count = compiled_submission_count
-        augmented_classes.append(class_obj)
-
     context = {
-        'classes': augmented_classes
+        'classes': classes
     }
     return render(request, 'lecturer/dashboard.html', context)
 
@@ -160,9 +142,9 @@ def create_class(request):
     return render(request, 'lecturer/create_class.html', {'form': form})
 
 @lecturer_required
-def class_detail(request, class_name):
+def class_detail(request, class_id):
     """View class details and manage tasks"""
-    class_obj = ClassModel.get_by_name(class_name)
+    class_obj = ClassModel.get_by_id(class_id)
     
     if not class_obj:
         messages.error(request, 'Class not found')
@@ -184,9 +166,9 @@ def class_detail(request, class_name):
     return render(request, 'lecturer/class_detail.html', context)
 
 @lecturer_required
-def create_task(request, class_name):
+def create_task(request, class_id):
     """Create a new task for a class"""
-    class_obj = ClassModel.get_by_name(class_name)
+    class_obj = ClassModel.get_by_id(class_id)
 
     if not class_obj or str(class_obj.lecturer.id) != request.session.get('user_id'):
         messages.error(request, 'Unauthorized access')
@@ -222,7 +204,7 @@ def create_task(request, class_name):
                 due_date=due_date
             )
             messages.success(request, f'Task "{title}" created successfully!')
-            return redirect('class_detail', class_name=class_name)
+            return redirect('class_detail', class_id=class_id)
     else:
         form = TaskForm()
 
@@ -241,11 +223,11 @@ def view_submissions(request, task_id):
         messages.error(request, 'Unauthorized access to view submissions')
         return redirect('lecturer_dashboard')
     
-    # Get compiled submissions for this task (corrected query)
-    compiled_subs = CompiledSubmissionModel.objects(task=task_id).all()
+    # Get compiled submissions for this task
+    compiled_subs = CompiledSubmissionModel.get_by_task(task_id)
     
     # Get groups for this class
-    groups = GroupModel.objects(class_obj=str(task.class_obj.id)).all()
+    groups = GroupModel.get_by_class(str(task.class_obj.id))
     
     # Map compiled submissions to groups
     submission_map = {}
@@ -316,38 +298,22 @@ def create_group(request):
     # and we'll need to adjust the logic to find that class.
     # The `create_group` view needs to know which class to create the group in.
     
-    # Check if the user has joined any class.
-    joined_classes = ClassModel.get_by_member(user_id)
-    if not joined_classes:
-        messages.error(request, "You haven't joined any class yet. Please join a class to create a group.")
-        return redirect('leader_dashboard')
-
-    # For simplicity, we'll use the first class they joined.
-    # A better implementation would allow the user to select which class
-    # if they are a member of multiple classes.
-    class_id = joined_classes[0].id
-
-    class_obj = ClassModel.get_by_id(class_id)
-    if not class_obj:
-        messages.error(request, 'Class not found.')
-        return redirect('leader_dashboard')
-    
     if request.method == 'POST':
-        form = GroupForm(request.POST, initial={'class_id': class_id})
+        form = GroupForm(request.POST, leader_id=user_id)
         if form.is_valid():
             name = form.cleaned_data['name']
             password = form.cleaned_data['password']
+            class_id = form.cleaned_data['class_obj'] # Get class_id from the form
             
             group = GroupModel.create(class_id, user_id, name, password)
             
             messages.success(request, f'Group "{name}" created successfully! Group ID: {group.id}')
             return redirect('group_detail', group_id=str(group.id))
     else:
-        form = GroupForm(initial={'class_id': class_id})
+        form = GroupForm(leader_id=user_id) # Pass leader_id to populate class choices
     
     context = {
         'form': form,
-        'class_obj': class_obj
     }
     return render(request, 'leader/create_group.html', context)
 
@@ -424,13 +390,6 @@ def group_detail(request, group_id):
     # Get all tasks for this class
     tasks = TaskModel.get_by_class(str(group.class_obj.id))
     
-    # Augment tasks with submission status
-    augmented_tasks = []
-    for task in tasks:
-        submissions = SubmissionModel.get_by_task_and_group(str(task.id), str(group.id))
-        task.submissions_exist = bool(submissions)
-        augmented_tasks.append(task)
-    
     # Get member details
     members = []
     for member_obj in group.members:
@@ -438,11 +397,23 @@ def group_detail(request, group_id):
         if member:
             members.append(member)
     
+    # Get submissions for each task in this group
+    submissions_by_task = {}
+    for task_obj in tasks:
+        task_submissions = SubmissionModel.get_by_task_and_group(str(task_obj.id), str(group.id))
+        
+        # Attach member info to each submission
+        for sub in task_submissions:
+            sub.member_obj = UserModel.get_by_id(sub.member.id)
+        
+        submissions_by_task[str(task_obj.id)] = task_submissions
+    
     context = {
         'group': group,
         'class_obj': class_obj,
-        'tasks': augmented_tasks,
-        'members': members
+        'tasks': tasks,
+        'members': members,
+        'submissions_by_task': submissions_by_task,
     }
     return render(request, 'leader/group_detail.html', context)
 
@@ -517,99 +488,64 @@ def divide_task(request, group_id, task_id):
     return render(request, 'leader/divide_task.html', context)
 
 @leader_required
-def leader_view_submissions(request, group_id, task_id):
-    """Group leader views all submissions for a specific task within their group."""
+def compile_submission(request, group_id, task_id):
+    """Compile group submissions into one PDF from curated text"""
     group = GroupModel.get_by_id(group_id)
     task = TaskModel.get_by_id(task_id)
-
-    if not group or str(group.leader.id) != request.session.get('user_id'):
-        messages.error(request, 'Unauthorized access to view submissions.')
-        return redirect('leader_dashboard')
-
-    if not task:
-        messages.error(request, 'Task not found.')
-        return redirect('group_detail', group_id=group_id)
-
-    # Ensure the task belongs to the same class as the group
-    if str(task.class_obj.id) != str(group.class_obj.id):
-        messages.error(request, 'Task does not belong to this group\'s class.')
-        return redirect('group_detail', group_id=group_id)
-
-    submissions = SubmissionModel.get_by_task_and_group(task_id, group_id)
     
-    # Fetch member details for each submission
-    submissions_with_members = []
-    for sub in submissions:
-        member = UserModel.get_by_id(str(sub.member.id))
-        if member:
-            submissions_with_members.append({
-                'submission': sub,
-                'member_email': member.email
-            })
-
-    compiled_submission = CompiledSubmissionModel.get_by_task_and_group(task_id, group_id)
-    
-    compiled_text_form = CompiledTextSubmissionForm()
-
-    context = {
-        'group': group,
-        'task': task,
-        'submissions': submissions_with_members,
-        'compiled_submission': compiled_submission,
-        'compiled_text_form': compiled_text_form
-    }
-    return render(request, 'leader/view_submissions.html', context)
-
-
-@leader_required
-@require_http_methods(["POST"])
-def leader_send_compiled_work(request, group_id, task_id):
-    """Group leader compiles text submissions and sends to lecturer as a PDF."""
-    group = GroupModel.get_by_id(group_id)
-    task = TaskModel.get_by_id(task_id)
-
     if not group or str(group.leader.id) != request.session.get('user_id'):
-        messages.error(request, 'Unauthorized access to send compiled work.')
+        messages.error(request, 'Unauthorized access')
         return redirect('leader_dashboard')
-
+    
     if not task:
-        messages.error(request, 'Task not found.')
-        return redirect('group_detail', group_id=group.id)
+        messages.error(request, 'Task not found')
+        return redirect('group_detail', group_id=group_id)
+    
+    if request.method == 'POST':
+        compiled_text_content = request.POST.get('compiled_text_content', '')
+        
+        if not compiled_text_content.strip():
+            messages.error(request, 'Compiled text cannot be empty.')
+            return redirect('leader_compile_submissions_view', group_id=group_id, task_id=task_id)
 
-    form = CompiledTextSubmissionForm(request.POST)
-    if form.is_valid():
-        compiled_text = form.cleaned_data['compiled_text']
-        user_email = request.session.get('user_email') # Leader's email for PDF generation
+        # Get member details for the PDF
+        members_data = []
+        for member_obj in group.members:
+            member = UserModel.get_by_id(str(member_obj.id))
+            if member:
+                members_data.append({'email': member.email})
 
         # Generate PDF from the compiled text
-        compiled_pdf_path = generate_member_pdf( # Reusing generate_member_pdf for simplicity
-            compiled_text,
-            f"Group {group.name} - Leader {user_email}",
-            f"Compiled Submission for {task.title}"
+        compiled_pdf_path = generate_compiled_pdf_from_text(
+            compiled_text_content,
+            group.name,
+            task.title,
+            members_data # Pass members data
         )
-
+        
         if compiled_pdf_path:
-            # Save to database
             relative_path = compiled_pdf_path.replace(settings.MEDIA_ROOT, '').lstrip('/')
-            if relative_path.startswith('media/'):
-                relative_path = relative_path[len('media/'):]
-            relative_path = relative_path.lstrip('/')
-
-            # Check if a compiled submission already exists for this group and task
+            
+            # Check if a compiled submission already exists for this task and group
             existing_compiled_sub = CompiledSubmissionModel.get_by_task_and_group(task_id, group_id)
+            
             if existing_compiled_sub:
-                existing_compiled_sub.compiled_pdf_path = relative_path
-                existing_compiled_sub.compiled_at = datetime.utcnow()
+                # Update existing compiled submission
+                existing_compiled_sub.compiled_pdf_path = f'/media/{relative_path}'
                 existing_compiled_sub.save()
+                messages.success(request, 'Compiled submission updated successfully!')
             else:
-                CompiledSubmissionModel.create(group_id, task_id, relative_path)
-            messages.success(request, 'Compiled work sent to lecturer successfully!')
+                # Create new compiled submission
+                CompiledSubmissionModel.create(group_id, task_id, f'/media/{relative_path}')
+                messages.success(request, 'Submissions compiled successfully!')
+            
+            return redirect('group_detail', group_id=group_id)
         else:
-            messages.error(request, 'Failed to generate PDF for compiled work.')
-    else:
-        messages.error(request, 'Invalid compiled text submission.')
+            messages.error(request, 'Failed to generate compiled PDF.')
+            return redirect('leader_compile_submissions_view', group_id=group_id, task_id=task_id)
     
-    return redirect('leader_view_submissions', group_id=group_id, task_id=task_id)
+    # If not a POST request, redirect to the view-and-compile page
+    return redirect('leader_compile_submissions_view', group_id=group_id, task_id=task_id)
 
 
 # ============= MEMBER VIEWS =============
@@ -631,23 +567,25 @@ def member_dashboard(request):
     for group in member_of_groups:
         member_classes_ids.add(str(group.class_obj.id))
     
-    member_classes = [ClassModel.get_by_id(cls_id) for cls_id in member_classes_ids if ClassModel.get_by_id(cls_id)]
+    # Get all unique tasks from classes the member is part of
+    all_class_tasks_set = set()
+    for group in member_of_groups:
+        tasks_in_group_class = TaskModel.get_by_class(str(group.class_obj.id))
+        for task in tasks_in_group_class:
+            all_class_tasks_set.add(task)
+    all_class_tasks = list(all_class_tasks_set)
 
-    # Get all tasks for the classes the member belongs to
-    all_class_tasks = []
-    for cls in member_classes:
-        tasks_in_class = TaskModel.get_by_class(str(cls.id))
-        all_class_tasks.extend(tasks_in_class)
-    
     # Get tasks for each group the user is a member of (for task divisions)
     group_tasks_with_divisions = {}
-    messages.info(request, f"Member is part of {len(member_of_groups)} groups.")
     for group in member_of_groups:
         tasks = TaskModel.get_by_class(str(group.class_obj.id))
         member_tasks_with_divisions = []
         for task in tasks:
             # Ensure explicit string comparison for member_id
             if any(str(div.get('member_id')) == str(user_id) for div in task.divisions):
+                # Check if member has submitted this task
+                has_submitted = SubmissionModel.get_by_task_and_member(str(task.id), user_id) is not None
+                task.has_submitted = has_submitted # Add submission status to task object
                 member_tasks_with_divisions.append(task)
         
         group_tasks_with_divisions[str(group.id)] = member_tasks_with_divisions
@@ -655,8 +593,8 @@ def member_dashboard(request):
     context = {
         'member_of_groups': member_of_groups,
         'invited_groups': invited_groups,
-        'all_class_tasks': all_class_tasks, # All tasks from the class
-        'group_tasks_with_divisions': group_tasks_with_divisions # Tasks specifically divided for the member
+        'all_class_tasks': all_class_tasks, # All unique tasks from classes the member is in
+        'group_tasks_with_divisions': group_tasks_with_divisions # Tasks specifically divided for the member, with submission status
     }
     return render(request, 'member/dashboard.html', context)
 
@@ -691,28 +629,45 @@ def submit_task(request, task_id):
         if form.is_valid():
             text_answer = form.cleaned_data['text_answer']
             
-            if existing_sub:
-                # Update existing submission
-                existing_sub.text_answer = text_answer
-                existing_sub.last_edited_at = datetime.utcnow()
-                existing_sub.save()
-                messages.success(request, 'Submission updated successfully!')
+            # Generate PDF
+            pdf_path = generate_member_pdf(
+                text_answer,
+                user_email,
+                task.title
+            )
+            
+            if pdf_path:
+                relative_path = pdf_path.replace(settings.MEDIA_ROOT, '').lstrip('/')
+                
+                if existing_sub:
+                    # Update existing submission
+                    existing_sub.text_answer = text_answer
+                    existing_sub.pdf_path = f'/media/{relative_path}'
+                    existing_sub.save() # Save the updated submission
+                    messages.success(request, 'Submission updated successfully!')
+                    
+                    # Notify group leader
+                    leader_email = user_group.leader.email
+                    messages.info(request, f'Your submission for "{task.title}" has been updated. Group leader ({leader_email}) has been notified.')
+                else:
+                    # Create new submission
+                    SubmissionModel.create(
+                        task_id,
+                        str(user_group.id),
+                        user_id,
+                        text_answer,
+                        f'/media/{relative_path}'
+                    )
+                    messages.success(request, 'Submission successful!')
+                
+                return redirect('member_dashboard')
             else:
-                # Create new submission
-                SubmissionModel.create(
-                    task_id,
-                    str(user_group.id),
-                    user_id,
-                    text_answer,
-                    pdf_path=None # Explicitly set to None as per new requirement
-                )
-                messages.success(request, 'Submission successful!')
-            return redirect('member_dashboard')
+                messages.error(request, 'Failed to generate PDF')
     else:
         # Pre-fill if already submitted
         initial_data = {}
         if existing_sub:
-            initial_data['text_answer'] = existing_sub.get('text_answer', '')
+            initial_data['text_answer'] = existing_sub.text_answer
         
         form = SubmissionForm(initial=initial_data)
     
@@ -748,7 +703,7 @@ def download_compiled(request, group_id, task_id):
     task = TaskModel.get_by_id(task_id)
     
     # Allow access if: lecturer, group leader, or group member
-    is_lecturer = user_obj['role'] == 'lecturer' and task and str(task.lecturer.id) == str(user_obj.id)
+    is_lecturer = user_obj.role == 'lecturer' and task and str(task.lecturer.id) == str(user_obj.id)
     is_leader = group and str(group.leader.id) == str(user_obj.id)
     is_member = group and str(user_obj.id) in [str(m.id) for m in group.members]
     
@@ -759,7 +714,7 @@ def download_compiled(request, group_id, task_id):
     # Get file path
     pdf_path = get_submission_pdf_path(compiled.compiled_pdf_path)
     
-    if not pdf_path or not os.path.exists(pdf_path):
+    if not os.path.exists(pdf_path):
         raise Http404("File not found")
     
     return FileResponse(
@@ -810,17 +765,51 @@ def download_task_file(request, task_id):
         content_type=content_type
     )
 
+@leader_required
+def leader_compile_submissions_view(request, group_id, task_id):
+    """
+    Leader can view all member submissions for a task in a text area
+    and then trigger compilation.
+    """
+    group = GroupModel.get_by_id(group_id)
+    task = TaskModel.get_by_id(task_id)
+
+    if not group or str(group.leader.id) != request.session.get('user_id'):
+        messages.error(request, 'Unauthorized access')
+        return redirect('leader_dashboard')
+    
+    if not task:
+        messages.error(request, 'Task not found')
+        return redirect('group_detail', group_id=group_id)
+
+    submissions = SubmissionModel.get_by_task_and_group(task_id, group_id)
+    
+    # Attach member info to each submission
+    for sub in submissions:
+        member = UserModel.get_by_id(sub.member.id)
+        if member:
+            sub.member_obj = member
+        else:
+            sub.member_obj = {'email': 'Unknown Member'} # Provide a fallback
+
+    context = {
+        'group': group,
+        'task': task,
+        'submissions': submissions, # Pass individual submissions
+        'has_submissions': bool(submissions)
+    }
+    return render(request, 'leader/compile_submissions_view.html', context)
+
 
 # ============= POLLING API VIEWS =============
 
 @login_required
 @require_http_methods(["GET"])
-def poll_tasks(request, class_name):
+def poll_tasks(request, class_id):
     """API endpoint to poll for task updates"""
-    class_obj = ClassModel.get_by_name(class_name)
+    class_obj = ClassModel.get_by_id(class_id)
     if not class_obj:
-        return JsonResponse({'tasks': [], 'error': 'Class not found'}, status=404)
-
+        return JsonResponse({'tasks': []})
     tasks = TaskModel.get_by_class(str(class_obj.id))
     
     task_list = []
@@ -852,3 +841,37 @@ def poll_submissions(request, task_id, group_id):
         })
     
     return JsonResponse({'submissions': sub_list})
+
+@login_required
+def download_submission_pdf(request, submission_id):
+    """Download an individual submission PDF"""
+    submission = SubmissionModel.get_by_id(submission_id)
+
+    if not submission or not submission.pdf_path:
+        raise Http404("Submission or PDF not found")
+
+    # Verify access rights: leader of the group this submission belongs to
+    user_id = request.session.get('user_id')
+    group = GroupModel.get_by_id(submission.group.id)
+    
+    is_leader = group and str(group.leader.id) == user_id
+
+    if not is_leader:
+        messages.error(request, 'Unauthorized access to download this submission file.')
+        return redirect('leader_dashboard')
+
+    file_full_path = get_submission_pdf_path(submission.pdf_path)
+
+    if not os.path.exists(file_full_path):
+        raise Http404("File not found on server")
+    
+    content_type, encoding = mimetypes.guess_type(file_full_path)
+    if content_type is None:
+        content_type = 'application/octet-stream'
+
+    return FileResponse(
+        open(file_full_path, 'rb'),
+        as_attachment=True,
+        filename=os.path.basename(file_full_path),
+        content_type=content_type
+    )

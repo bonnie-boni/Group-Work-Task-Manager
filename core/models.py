@@ -111,7 +111,7 @@ class GroupModel(Document):
     """
     name = StringField(required=True)
     password_hash = StringField(required=True)
-    class_obj = ReferenceField(ClassModel, reverse_delete_rule=CASCADE)
+    class_obj = ReferenceField(ClassModel, required=True, reverse_delete_rule=CASCADE) # Added required=True
     leader = ReferenceField(UserModel, reverse_delete_rule=CASCADE)
     members = ListField(ReferenceField(UserModel))
     whitelist_emails = ListField(EmailField())
@@ -120,9 +120,9 @@ class GroupModel(Document):
     meta = {'collection': 'groups', 'indexes': [{'fields': ('name', 'class_obj'), 'unique': True}]}
 
     @classmethod
-    def create(cls, class_id, leader_id, name, password):
+    def create(cls, class_obj, leader_id, name, password): # Changed class_id to class_obj
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        group = cls(name=name, password_hash=hashed_password, class_obj=class_id, leader=leader_id, members=[leader_id])
+        group = cls(name=name, password_hash=hashed_password, class_obj=class_obj, leader=leader_id, members=[leader_id])
         group.save()
         return group
 
@@ -235,13 +235,12 @@ class SubmissionModel(Document):
     text_answer = StringField()
     pdf_path = StringField() # Relative path to the generated PDF
     submitted_at = DateTimeField(default=datetime.utcnow)
-    last_edited_at = DateTimeField(default=datetime.utcnow) # New field to track edits
     status = StringField(default='submitted') # e.g., 'submitted', 'graded'
 
     meta = {'collection': 'submissions'}
 
     @classmethod
-    def create(cls, task_id, group_id, member_id, text_answer, pdf_path=None):
+    def create(cls, task_id, group_id, member_id, text_answer, pdf_path):
         submission = cls(task=task_id, group=group_id, member=member_id,
                          text_answer=text_answer, pdf_path=pdf_path)
         submission.save()
@@ -275,3 +274,7 @@ class CompiledSubmissionModel(Document):
     @classmethod
     def get_by_task_and_group(cls, task_id, group_id):
         return cls.objects(task=task_id, group=group_id).first()
+
+    @classmethod
+    def get_by_task(cls, task_id):
+        return cls.objects(task=task_id).all()

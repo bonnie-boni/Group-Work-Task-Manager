@@ -3,19 +3,19 @@
 {% block title %}Join Class{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto mt-10 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-    <h2 class="text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-6">Join a Class</h2>
+<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow-lg">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Join a Class</h2>
     
     {% include 'partials/messages.html' %}
     
     <form method="post" class="space-y-6">
         {% csrf_token %}
         <div>
-            <label for="class_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Class Name</label>
+            <label for="class_name" class="block text-sm font-medium text-gray-700">Class Name</label>
             {{ form.class_name }}
         </div>
         <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Class Password</label>
+            <label for="password" class="block text-sm font-medium text-gray-700">Class Password</label>
             {{ form.password }}
         </div>
         

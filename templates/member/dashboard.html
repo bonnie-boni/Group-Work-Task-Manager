@@ -5,19 +5,19 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Member Dashboard</h1>
-    <p class="text-gray-600 dark:text-gray-400 mt-2">View your tasks and groups</p>
+    <h1 class="text-3xl font-bold text-gray-900">Member Dashboard</h1>
+    <p class="text-gray-600 mt-2">View your tasks and groups</p>
 </div>
 
 <div class="space-y-8">
     {% if invited_groups %}
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Group Invitations</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Group Invitations</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for group in invited_groups %}
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ group.name }}</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">From Class: {{ group.class_obj.name }}</p>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ group.name }}</h3>
+                <p class="text-gray-600 mb-4">From Class: {{ group.class_obj.name }}</p>
                 <a href="{% url 'accept_group_invitation' group.id %}"
                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
                     Accept Invitation
@@ -29,16 +29,17 @@
     {% endif %}
 
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">All Class Tasks</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">All Class Tasks</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for task in all_class_tasks %}
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ task.title }}</h3>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ task.title }}</h3>
+                <p class="text-gray-600 mb-4">Class: {{ task.class_obj.name }}</p>
                 {% if task.description %}
-                    <p class="text-gray-600 dark:text-gray-400 mt-1">{{ task.description|truncatewords:30 }}</p>
+                    <p class="text-gray-600 mt-1">{{ task.description|truncatewords:30 }}</p>
                 {% endif %}
                 {% if task.due_date %}
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Due: {{ task.due_date|date:"M d, Y" }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Due: {{ task.due_date|date:"M d, Y" }}</p>
                 {% endif %}
                 {% if task.file_path %}
                     <a href="{% url 'download_task_file' task.id %}"
@@ -48,61 +49,71 @@
                 {% endif %}
             </div>
             {% empty %}
-            <div class="col-span-full text-center py-8 bg-white dark:bg-gray-800 rounded-lg">
-                <p class="text-gray-500 dark:text-gray-400 text-lg">No tasks have been uploaded to your class yet.</p>
+            <div class="col-span-full text-center py-8 bg-white rounded-lg">
+                <p class="text-gray-500 text-lg">No tasks have been uploaded to your class yet.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Your Groups</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Groups</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for group in member_of_groups %}
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ group.name }}</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">Class: {{ group.class_obj.name }}</p>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ group.name }}</h3>
+                <p class="text-gray-600 mb-4">Class: {{ group.class_obj.name }}</p>
                 
-                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3">Assigned Tasks (Your Divisions)</h4>
+                <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-3">Assigned Tasks (Your Divisions)</h4>
                 <div class="space-y-4">
                     {% for task in group_tasks_with_divisions|get_item:group.id %}
-                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                             <div class="flex-1 mb-4 sm:mb-0">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ task.title }}</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ task.title }}</h3>
                                 <p>DEBUG: Task ID: {{ task.id }}</p> {# Temporary debug message #}
                                 {% if task.description %}
-                                    <p class="text-gray-600 dark:text-gray-400 mt-1">{{ task.description|truncatewords:15 }}</p>
+                                    <p class="text-gray-600 mt-1">{{ task.description|truncatewords:15 }}</p>
                                 {% endif %}
 
                                 {% for division in task.divisions %}
                                     {% if division|get_item:'member_id' == request.session.user_id %}
-                                    <div class="mt-2 bg-blue-50 border border-blue-200 rounded p-3 dark:bg-blue-900 dark:border-blue-700">
-                                        <p class="text-sm font-semibold text-blue-900 dark:text-blue-100">Your Part:</p>
-                                        <p class="text-sm text-blue-800 dark:text-blue-200">{{ division|get_item:'part_description' }}</p>
+                                    <div class="mt-2 bg-blue-50 border border-blue-200 rounded p-3">
+                                        <p class="text-sm font-semibold text-blue-900">Your Part:</p>
+                                        <p class="text-sm text-blue-800">{{ division|get_item:'part_description' }}</p>
                                     </div>
                                     {% endif %}
                                 {% endfor %}
 
                                 {% if task.due_date %}
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Due: {{ task.due_date|date:"M d, Y" }}</p>
+                                <p class="text-sm text-gray-500 mt-2">Due: {{ task.due_date|date:"M d, Y" }}</p>
                                 {% endif %}
                             </div>
-                            <a href="{% url 'submit_task' task.id %}"
-                               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-center">
-                                Submit
-                            </a>
+                            {% if task.has_submitted %}
+                                <div class="flex items-center space-x-2 mt-4 sm:mt-0">
+                                    <span class="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">Submitted</span>
+                                    <a href="{% url 'submit_task' task.id %}"
+                                       class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-center">
+                                        Edit Submission
+                                    </a>
+                                </div>
+                            {% else %}
+                                <a href="{% url 'submit_task' task.id %}"
+                                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-center">
+                                    Submit
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-gray-500 dark:text-gray-400 text-center py-8">No tasks specifically divided for you yet.</p>
+                    <p class="text-gray-500 text-center py-8">No tasks specifically divided for you yet.</p>
                     {% endfor %}
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-full text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-                <p class="text-gray-500 dark:text-gray-400 text-lg">You are not a member of any groups yet.</p>
-                <p class="text-gray-500 dark:text-gray-400 text-md mt-2">Ask a group leader to whitelist your email to receive an invitation.</p>
+            <div class="col-span-full text-center py-12 bg-white rounded-lg">
+                <p class="text-gray-500 text-lg">You are not a member of any groups yet.</p>
+                <p class="text-gray-500 text-md mt-2">Ask a group leader to whitelist your email to receive an invitation.</p>
             </div>
             {% endfor %}
         </div>

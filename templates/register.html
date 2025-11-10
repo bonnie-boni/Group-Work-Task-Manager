@@ -1,52 +1,52 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - Smart Groups{% endblock %}
+{% block title %}Register - Classroom Manager{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 px-4">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
     <div class="max-w-md w-full">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Account</h2>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">Join our classroom management system</p>
+                <h2 class="text-3xl font-bold text-gray-900">Create Account</h2>
+                <p class="mt-2 text-gray-600">Join our classroom management system</p>
             </div>
 
             <form method="post" class="space-y-6">
                 {% csrf_token %}
                 
                 <div>
-                    <label for="id_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="id_email" class="block text-sm font-medium text-gray-700 mb-2">
                         Email Address
                     </label>
                     {{ form.email }}
                     {% if form.email.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.email.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div>
-                    <label for="id_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="id_password" class="block text-sm font-medium text-gray-700 mb-2">
                         Password
                     </label>
                     {{ form.password }}
                     {% if form.password.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.password.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div>
-                    <label for="id_confirm_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="id_confirm_password" class="block text-sm font-medium text-gray-700 mb-2">
                         Confirm Password
                     </label>
                     {{ form.confirm_password }}
                     {% if form.confirm_password.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.confirm_password.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.confirm_password.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 {% if form.non_field_errors %}
-                    <div class="p-3 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-100 dark:border-red-700">
-                        <p class="text-sm text-red-800 dark:text-red-100">{{ form.non_field_errors.0 }}</p>
+                    <div class="p-3 bg-red-100 border border-red-300 rounded-lg">
+                        <p class="text-sm text-red-800">{{ form.non_field_errors.0 }}</p>
                     </div>
                 {% endif %}
 
@@ -57,16 +57,16 @@
             </form>
 
             <div class="mt-6 text-center">
-                <p class="text-gray-600 dark:text-gray-400">
+                <p class="text-gray-600">
                     Already have an account? 
-                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 font-semibold">
+                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 font-semibold">
                         Sign in here
                     </a>
                 </p>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="text-sm text-gray-500 space-y-2">
                     <p><strong>New users:</strong> Registered as Member by default</p>
                     <p><strong>Group Leaders:</strong> Can create groups (role auto-upgrades)</p>
                     <p><strong>Lecturers:</strong> Must be assigned by administrator</p>
