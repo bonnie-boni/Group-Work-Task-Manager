@@ -21,7 +21,7 @@ from .forms import (
 from .decorators import login_required, lecturer_required, leader_required
 from .pdf_utils import generate_member_pdf, compile_group_pdf, get_submission_pdf_path, generate_compiled_pdf_from_text
 from django.conf import settings
-import mimetypes # Move this import to the top
+import mimetypes
 
 
 # ============= AUTHENTICATION VIEWS =============
@@ -717,10 +717,15 @@ def download_compiled(request, group_id, task_id):
     if not os.path.exists(pdf_path):
         raise Http404("File not found")
     
+    content_type, encoding = mimetypes.guess_type(pdf_path)
+    if content_type is None:
+        content_type = 'application/pdf' # Default to PDF if type cannot be guessed
+
     return FileResponse(
         open(pdf_path, 'rb'),
         as_attachment=True,
-        filename=os.path.basename(pdf_path)
+        filename=os.path.basename(pdf_path),
+        content_type=content_type
     )
 
 @login_required
