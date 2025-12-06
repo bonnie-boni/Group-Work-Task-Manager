@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}All Tasks{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">All Tasks</h1>
+            <p class="text-gray-600 mt-2">View all your assigned tasks and their submission status</p>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">My Tasks</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Task Title
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Group
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Class
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Submission Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for task in all_tasks %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ task.title }}</div>
+                                {% if task.description %}
+                                    <div class="text-sm text-gray-500 truncate max-w-xs">{{ task.description|truncatechars:50 }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ task.group_name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ task.class_name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if task.has_submitted %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Submitted
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if task.submission_date %}
+                                    {{ task.submission_date }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {% if task.has_submitted %}
+                                    <a href="{% url 'submit_task' task.id %}"
+                                       class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md text-xs font-medium">
+                                        Update
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'submit_task' task.id %}"
+                                       class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md text-xs font-medium">
+                                        Submit
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                <div class="text-lg font-medium">No tasks found</div>
+                                <p class="mt-1">You haven't been assigned any tasks yet.</p>
+                                <a href="{% url 'student_groups' %}" class="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+                                    View My Groups →
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

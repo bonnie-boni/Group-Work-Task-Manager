@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Create Group</h1>
+            <p class="text-gray-600 mt-2">Start a new group and become its leader</p>
+        </div>
+
+        <!-- Form Content -->
+        <div class="max-w-2xl">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.class_obj.id_for_label }}" class="block text-sm font-medium mb-2">Select Class</label>
+                            {{ form.class_obj }}
+                        </div>
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium mb-2">Group Name</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium mb-2">Group Password</label>
+                            {{ form.password }}
+                            <p class="text-sm text-gray-500 mt-1">Share this with whitelisted members</p>
+                        </div>
+
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+                            Create Group
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

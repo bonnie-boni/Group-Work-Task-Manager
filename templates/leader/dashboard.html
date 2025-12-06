@@ -15,6 +15,9 @@
     <a href="{% url 'create_group' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">
         Create New Group
     </a>
+    <a href="{% url 'my_groups' %}" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center">
+        My Groups
+    </a>
 </div>
 
 {% if joined_class %}
@@ -25,43 +28,4 @@
     </div>
 </div>
 {% endif %}
-
-<div class="mb-8">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Groups You Lead</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {% for group in led_groups %}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ group.name }}</h3>
-            <div class="text-sm text-gray-600 space-y-1 mb-4">
-                <p><strong>Class:</strong> {{ group.class_obj.name }}</p>
-                <p><strong>Members:</strong> {{ group.members|length }}</p>
-                <p><strong>Whitelisted:</strong> {{ group.whitelist_emails|length }}</p>
-            </div>
-            <a href="{% url 'group_detail' group.id %}" 
-               class="text-blue-600 hover:text-blue-700 font-semibold">
-                Manage Group →
-            </a>
-        </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12 bg-white rounded-lg">
-            <p class="text-gray-500">No groups yet. Join a class and create a group!</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<div>
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Group Memberships</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {% for group in member_groups %}
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ group.name }}</h3>
-            <div class="text-sm text-gray-600 space-y-1">
-                <p><strong>Class:</strong> {{ group.class_obj.name }}</p>
-                <p><strong>Members:</strong> {{ group.members|length }}</p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 {% endblock %}

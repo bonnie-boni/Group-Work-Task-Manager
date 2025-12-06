@@ -4,8 +4,14 @@
 {% block title %}View Submissions{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-3xl font-bold">{{ task.title }} - Submissions</h1>
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/lecturer_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold">{{ task.title }} - Submissions</h1>
     <p class="text-gray-600 mt-2">{{ task.description }}</p>
 </div>
 
@@ -29,5 +35,7 @@
         </div>
     </div>
     {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}

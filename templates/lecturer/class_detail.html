@@ -3,8 +3,14 @@
 {% block title %}{{ class_obj.name }}{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">{{ class_obj.name }}</h1>
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/lecturer_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">{{ class_obj.name }}</h1>
     <p class="text-gray-600 mt-2">Class ID: {{ class_obj.id }}</p>
 </div>
 
@@ -69,6 +75,7 @@
         {% empty %}
         <p class="text-gray-500 text-center py-8">No groups yet. Students can create groups for this class.</p>
         {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

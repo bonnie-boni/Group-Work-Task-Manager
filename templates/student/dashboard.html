@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Student Dashboard</h1>
+            <p class="text-gray-600 mt-2">Overview of your academic progress</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Statistics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- Classes -->
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ num_classes }}</div>
+                    <div class="text-gray-600 text-sm">Classes Enrolled</div>
+                    <div class="mt-2">
+                        <i class="fas fa-graduation-cap text-blue-500 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Groups In -->
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ num_groups_in }}</div>
+                    <div class="text-gray-600 text-sm">Groups Member Of</div>
+                    <div class="mt-2">
+                        <i class="fas fa-users text-green-500 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Groups Created -->
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ num_groups_created }}</div>
+                    <div class="text-gray-600 text-sm">Groups Created</div>
+                    <div class="mt-2">
+                        <i class="fas fa-crown text-purple-500 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Total Submissions -->
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold text-indigo-600 mb-2">{{ total_submissions }}</div>
+                    <div class="text-gray-600 text-sm">Total Submissions</div>
+                    <div class="mt-2">
+                        <i class="fas fa-file-alt text-indigo-500 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Pending Submissions -->
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-3xl font-bold {% if pending_submissions > 0 %}text-red-600{% else %}text-gray-600{% endif %} mb-2">{{ pending_submissions }}</div>
+                    <div class="text-gray-600 text-sm">Pending Submissions</div>
+                    <div class="mt-2">
+                        <i class="fas fa-clock {% if pending_submissions > 0 %}text-red-500{% else %}text-gray-400{% endif %} text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Task Assignments Section -->
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h2 class="section-title">My Task Assignments</h2>
+                <p class="section-subtitle">Tasks assigned to you in your groups</p>
+            </div>
+            <div class="section-content">
+                {% if group_tasks_with_divisions %}
+                    {% for group_id, tasks in group_tasks_with_divisions.items %}
+                        {% for task in tasks %}
+                        <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ task.title }}</h3>
+                            <p class="text-gray-600 mb-2">Group: {{ task.group_name }} | Class: {{ task.class_name }}</p>
+                            {% for division in task.divisions %}
+                                {% if division.member_id == user.id %}
+                                    <div class="bg-gray-50 p-3 rounded mb-4">
+                                        <h4 class="font-semibold text-gray-700">Your Part:</h4>
+                                        <p class="text-gray-600">{{ division.part_description }}</p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <div class="flex space-x-2">
+                                {% if task.has_submitted %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        ✓ Submitted
+                                    </span>
+                                    <a href="{% url 'submit_task' task.id %}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                        Update Submission
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'submit_task' task.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                        Submit Task
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                        <p class="text-gray-500">No task assignments yet. Join a group to get started!</p>
+                        <a href="{% url 'student_groups' %}" class="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+                            View My Groups →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+{% endblock %}

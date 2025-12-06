@@ -3,8 +3,14 @@
 {% block title %}Create Task{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Create New Task</h1>
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/lecturer_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6">Create New Task</h1>
     
     <div class="bg-white rounded-lg shadow-md p-8">
         <form method="post" enctype="multipart/form-data">
@@ -75,4 +81,7 @@
         toggleTaskFields(); // Set initial state
     });
 </script>
+        </div>
+    </div>
+</div>
 {% endblock %}

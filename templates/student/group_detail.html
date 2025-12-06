@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">{{ group.name }}</h1>
+            <p class="text-gray-600 mt-2">Class: {{ class_obj.name }}</p>
+            <p class="text-sm text-gray-500">Group ID: {{ group.id }}</p>
+            {% if is_leader %}
+                <p class="text-sm text-blue-600 font-semibold">You are the group leader</p>
+            {% else %}
+                <p class="text-sm text-gray-600">Leader: {{ group.leader.email }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Tasks -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Tasks</h2>
+            <div class="space-y-4">
+                {% for task in tasks %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-bold">{{ task.title }}</h3>
+                    {% if task.description %}
+                        <p class="text-gray-600 mt-1">{{ task.description|truncatewords:15 }}</p>
+                    {% elif task.file_path %}
+                        <p class="text-gray-600 mt-1">Task Document:
+                            <a href="{% url 'download_task_file' task.id %}" class="text-blue-600 hover:underline" download>
+                                Download Task File
+                            </a>
+                        </p>
+                    {% endif %}
+
+                    {% if is_leader %}
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                        <a href="{% url 'divide_task' group.id task.id %}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm w-full sm:w-auto text-center">
+                            Divide Task
+                        </a>
+                        <a href="{% url 'student_compile_submissions_view' group.id task.id %}"
+                           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm w-full sm:w-auto text-center">
+                            Compile Submissions
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Task Divisions -->
+                    {% if task.divisions %}
+                    <div class="mt-4 border-t border-gray-200 pt-4">
+                        <h4 class="text-lg font-semibold mb-3">Task Divisions:</h4>
+                        <div class="space-y-2">
+                            {% for division in task.divisions %}
+                                {% for member in members %}
+                                    {% if member.id|stringformat:"s" == division.member_id %}
+                                        <div class="bg-gray-50 p-3 rounded-lg">
+                                            <p class="font-medium">{{ member.email }}:</p>
+                                            <p class="text-gray-700 text-sm">{{ division.part_description }}</p>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Submissions (only for leaders) -->
+                    {% if is_leader %}
+                    <div class="mt-6 border-t border-gray-200 pt-4">
+                        <h4 class="text-lg font-semibold mb-3">Individual Submissions:</h4>
+                        {% with current_task_submissions=submissions_by_task|get_item:task.id %}
+                            {% if current_task_submissions %}
+                                <div class="space-y-3">
+                                    {% for submission in current_task_submissions %}
+                                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                            <p class="text-sm font-medium text-gray-800">
+                                                Submitted by: {{ submission.member_obj.email }}
+                                                <span class="text-gray-500 ml-2 text-xs">({{ submission.submitted_at|date:"M d, Y H:i" }})</span>
+                                            </p>
+                                            <p class="text-gray-700 mt-1 text-sm">{{ submission.text_answer|truncatewords:50 }}</p>
+                                            {% if not submission.pdf_path %}
+                                                <p class="text-red-500 text-sm mt-2">PDF not available</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500 text-sm">No submissions yet for this task.</p>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Whitelist Management (only for leaders) -->
+        {% if is_leader %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Whitelist Management</h2>
+
+            <form method="post" action="{% url 'add_whitelist' group.id %}" class="mb-4">
+                {% csrf_token %}
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="email" name="email" placeholder="member@example.com" required
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg w-full sm:w-auto">
+                        Add Email
+                    </button>
+                </div>
+            </form>
+
+            <div class="space-y-2">
+                {% for email in group.whitelist_emails %}
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded">
+                    <span>{{ email }}</span>
+                    <a href="{% url 'remove_whitelist' group.id email %}" class="text-red-600 hover:text-red-700">
+                        Remove
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Members -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Members ({{ members|length }})</h2>
+            <div class="space-y-2">
+                {% for member in members %}
+                <div class="bg-gray-50 p-3 rounded">
+                    {{ member.email }}
+                    {% if member.id|stringformat:"s" == group.leader.id|stringformat:"s" %}
+                    <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Leader</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

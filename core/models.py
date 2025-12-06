@@ -5,22 +5,21 @@ import bcrypt
 class UserModel(Document):
     """
     Represents a user in the system.
-    Roles: 'lecturer', 'leader', 'member'
+    Roles: 'lecturer', 'student'
     """
     ROLE_LECTURER = 'lecturer'
-    ROLE_LEADER = 'leader'
-    ROLE_MEMBER = 'member'
-    ROLES = [ROLE_LECTURER, ROLE_LEADER, ROLE_MEMBER]
+    ROLE_STUDENT = 'student'
+    ROLES = [ROLE_LECTURER, ROLE_STUDENT]
 
     email = EmailField(required=True, unique=True)
     password_hash = StringField(required=True)
-    role = StringField(choices=ROLES, default=ROLE_MEMBER)
+    role = StringField(choices=ROLES, default=ROLE_STUDENT)
     created_at = DateTimeField(default=datetime.utcnow)
 
     meta = {'collection': 'users'}
 
     @classmethod
-    def create(cls, email, password, role=ROLE_MEMBER):
+    def create(cls, email, password, role=ROLE_STUDENT):
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user = cls(email=email, password_hash=hashed_password, role=role)
         user.save()
@@ -104,6 +103,11 @@ class ClassModel(Document):
     def get_by_member(cls, user_id):
         """Find classes a user is a member of."""
         return cls.objects(members=user_id).all()
+
+    @classmethod
+    def get_all(cls):
+        """Get all classes."""
+        return cls.objects.all()
 
 class GroupModel(Document):
     """

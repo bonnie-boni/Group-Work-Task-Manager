@@ -26,22 +26,23 @@ def clear_database():
     print("Database cleared!")
 
 def create_users():
-    """Create test users"""
+    """Create test users - all students created as 'student' role"""
     print("\nCreating users...")
     
     users = [
         ('lecturer@test.com', 'password123', 'lecturer'),
-        ('leader@test.com', 'password123', 'leader'),
-        ('member1@test.com', 'password123', 'member'),
-        ('member2@test.com', 'password123', 'member'),
-        ('member3@test.com', 'password123', 'member'),
+        ('student1@test.com', 'password123', 'student'),
+        ('student2@test.com', 'password123', 'student'),
+        ('student3@test.com', 'password123', 'student'),
+        ('student4@test.com', 'password123', 'student'),
     ]
     
     created_users = {}
     for email, password, role in users:
         user = UserModel.create(email, password, role)
         if user:
-            created_users[role + ('_' + email.split('@')[0] if role == 'member' else '')] = user
+            user_key = email.split('@')[0]
+            created_users[user_key] = user
             print(f"✓ Created {role}: {email}")
         else:
             print(f"✗ Failed to create {email}")
@@ -76,18 +77,18 @@ def create_classes(users):
     return created_classes
 
 def create_groups(classes, users):
-    """Create test groups"""
+    """Create test groups - promotes creator to 'leader' role"""
     print("\nCreating groups...")
     
     ai_class = classes.get('Artificial Intelligence 101')
-    leader = users.get('leader')
+    student1 = users.get('student1')
     
-    if not ai_class or not leader:
-        print("✗ Class or leader not found")
+    if not ai_class or not student1:
+        print("✗ Class or student not found")
         return {}
     
     groups_data = [
-        ('Group Alpha', 'alphap ass'),
+        ('Group Alpha', 'alphapass'),
         ('Group Beta', 'betapass'),
     ]
     
@@ -95,21 +96,25 @@ def create_groups(classes, users):
     for name, password in groups_data:
         group = GroupModel.create(
             str(ai_class.id),
-            str(leader.id),
+            str(student1.id),
             name,
             password
         )
         if group:
+            # Promote student to 'leader' role when they create a group
+            UserModel.update_role(str(student1.id), 'leader')
+            
             created_groups[name] = group
             print(f"✓ Created group: {name}")
             print(f"  Group ID: {group.id}")
             print(f"  Password: {password}")
+            print(f"  Creator promoted to 'leader' role")
             
-            # Add members to whitelist
-            GroupModel.add_whitelist_email(str(group.id), 'member1@test.com')
-            GroupModel.add_whitelist_email(str(group.id), 'member2@test.com')
-            GroupModel.add_whitelist_email(str(group.id), 'member3@test.com')
-            print(f"  Whitelisted: member1@test.com, member2@test.com, member3@test.com")
+            # Add students to whitelist
+            GroupModel.add_whitelist_email(str(group.id), 'student2@test.com')
+            GroupModel.add_whitelist_email(str(group.id), 'student3@test.com')
+            GroupModel.add_whitelist_email(str(group.id), 'student4@test.com')
+            print(f"  Whitelisted: student2@test.com, student3@test.com, student4@test.com")
         else:
             print(f"✗ Failed to create group {name}")
     
@@ -164,24 +169,24 @@ def create_tasks(classes, users):
     return created_tasks
 
 def add_task_divisions(tasks, users):
-    """Add task divisions for members"""
+    """Add task divisions for students"""
     print("\nAdding task divisions...")
     
     task = tasks.get('Machine Learning Fundamentals')
-    member1 = users.get('member_member1')
-    member2 = users.get('member_member2')
+    student2 = users.get('student2')
+    student3 = users.get('student3')
     
-    if not task or not member1 or not member2:
-        print("✗ Task or members not found")
+    if not task or not student2 or not student3:
+        print("✗ Task or students not found")
         return
     
     divisions = [
-        (str(member1.id), 'Part 1: Explain supervised learning with 3 examples'),
-        (str(member2.id), 'Part 2: Explain unsupervised learning with 3 examples'),
+        (str(student2.id), 'Part 1: Explain supervised learning with 3 examples'),
+        (str(student3.id), 'Part 2: Explain unsupervised learning with 3 examples'),
     ]
     
-    for member_id, part_desc in divisions:
-        TaskModel.add_division(str(task.id), member_id, part_desc)
+    for student_id, part_desc in divisions:
+        TaskModel.add_division(str(task.id), student_id, part_desc)
         print(f"✓ Added division: {part_desc}")
 
 def main():
@@ -193,15 +198,29 @@ def main():
     # Clear existing data
     clear_database()
     
-    # # Create test data (commented out to prevent creation of test accounts)
-    # users = create_users()
-    # classes = create_classes(users)
-    # groups = create_groups(classes, users)
-    # tasks = create_tasks(classes, users)
-    # add_task_divisions(tasks, users)
+    # Create test data
+    users = create_users()
+    classes = create_classes(users)
+    groups = create_groups(classes, users)
+    tasks = create_tasks(classes, users)
+    add_task_divisions(tasks, users)
     
-    # # Print summary (commented out as no test data is created)
-    # print_summary(users, classes, groups, tasks)
+    print("\n" + "="*60)
+    print("SEEDING COMPLETE!")
+    print("="*60)
+    print("\n📝 Test Accounts Created:")
+    print("  Lecturer: lecturer@test.com / password123")
+    print("  Student 1: student1@test.com / password123 (becomes Leader after creating group)")
+    print("  Student 2: student2@test.com / password123")
+    print("  Student 3: student3@test.com / password123")
+    print("  Student 4: student4@test.com / password123")
+    print("\n🔑 Class Credentials:")
+    print("  Class 1: 'Artificial Intelligence 101' / 'ai101pass'")
+    print("  Class 2: 'Web Development' / 'webdevpass'")
+    print("\n✨ Role System:")
+    print("  • All new users start as Students")
+    print("  • Creating a group automatically promotes to Group Leader")
+    print("  • Lecturer role is assigned by administrators only")
 
 if __name__ == '__main__':
     main()

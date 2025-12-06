@@ -1,0 +1,87 @@
+<!-- Student Sidebar Navigation -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2 class="sidebar-title">Menu</h2>
+        <button class="sidebar-close" id="sidebar-close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Main</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3z"></path>
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7h2.004a1 1 0 110 2h-.001a9.001 9.001 0 01-17.86 0h-.084a1 1 0 110-2h2.059z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd" d="M19.54 14H21.5a1 1 0 110 2h-2.004a9.001 9.001 0 01-17.86 0H2.5a1 1 0 110-2h2.059c1.274 4.057 5.064 7 9.441 7s8.268-2.943 9.542-7z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Navigation</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'student_tasks' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_tasks' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 3a1 1 0 000 2h6a1 1 0 000-2H9z"></path>
+                            <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm4 3a1 1 0 100 2h8a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>All Tasks</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'student_groups' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_groups' %}active{% endif %} {% if has_pending_invitations %}border-red-500 border-2{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V5zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1v-2z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>My Groups</span>
+                        {% if has_pending_invitations %}
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                !
+                            </span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'join_class' %}" class="sidebar-link {% if request.resolver_match.url_name == 'join_class' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15 6a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path fill-rule="evenodd" d="M9 0a9 9 0 00-7.854 13.773c.482.692 1.294 1.227 2.183 1.227h21.342c.889 0 1.701-.535 2.183-1.227A9 9 0 009 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Join Class</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Account</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'logout' %}" class="sidebar-link sidebar-link-danger">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm14.707 9.293a1 1 0 00-1.414-1.414L9 12.586V3a1 1 0 10-2 0v9.586L4.707 10.293a1 1 0 00-1.414 1.414l6 6a1 1 0 001.414 0l6-6z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <p class="user-email">{{ current_user.email }}</p>
+            <span class="badge badge-success">STUDENT</span>
+        </div>
+    </div>
+</div>

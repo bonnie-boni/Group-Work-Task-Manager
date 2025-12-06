@@ -23,7 +23,7 @@ class LoginForm(forms.Form):
         })
     )
     role = forms.ChoiceField(
-        choices=[('member', 'Member'), ('leader', 'Group Leader'), ('lecturer', 'Lecturer')],
+        choices=[('student', 'Student'), ('lecturer', 'Lecturer')],
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
         })
@@ -165,7 +165,7 @@ class GroupForm(forms.Form):
         leader_id = kwargs.pop('leader_id', None)
         super().__init__(*args, **kwargs)
         if leader_id:
-            # Get classes where the current user is a leader
+            # Get classes where the current user is a member (student)
             classes = ClassModel.objects(members=leader_id).all()
             self.fields['class_obj'].choices = [(str(c.id), c.name) for c in classes]
 

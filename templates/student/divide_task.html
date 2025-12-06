@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Divide Task{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Divide Task: {{ task.title }}</h1>
+            <p class="text-gray-600 mt-2">Group: {{ group.name }}</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="space-y-6">
+                    {% for member in members %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <label class="block text-sm font-semibold mb-2">
+                            {{ member.email }}
+                        </label>
+                        {% with member_division=task.divisions|get_item_by_member_id:member.id %}
+                        <textarea name="part_{{ member.id }}" rows="3"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                  placeholder="Describe what this member should work on...">{{ member_division.part_description|default_if_none:"" }}</textarea>
+                        {% endwith %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+                    Save Task Divisions
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

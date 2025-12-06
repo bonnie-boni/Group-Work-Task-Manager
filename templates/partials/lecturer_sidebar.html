@@ -1,0 +1,126 @@
+<!-- Lecturer Sidebar Navigation -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2 class="sidebar-title">Menu</h2>
+        <button class="sidebar-close" id="sidebar-close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Main</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'lecturer_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lecturer_dashboard' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3z"></path>
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7h2.004a1 1 0 110 2h-.001a9.001 9.001 0 01-17.86 0h-.084a1 1 0 110-2h2.059z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd" d="M19.54 14H21.5a1 1 0 110 2h-2.004a9.001 9.001 0 01-17.86 0H2.5a1 1 0 110-2h2.059c1.274 4.057 5.064 7 9.441 7s8.268-2.943 9.542-7z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Classes</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'create_class' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_class' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M12 3a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Create Class</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#my-classes-section" class="sidebar-link">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 10-2 0v2a1 1 0 01-1 1H4a2 2 0 01-2-2V4zm3 1a1 1 0 000 2h.01a1 1 0 000-2H7zm3 0a1 1 0 000 2h.01a1 1 0 000-2H10zm3 0a1 1 0 000 2h.01a1 1 0 000-2H13zm-6 4a1 1 0 000 2h.01a1 1 0 000-2H7zm3 0a1 1 0 000 2h.01a1 1 0 000-2H10zm3 0a1 1 0 000 2h.01a1 1 0 000-2H13zm-6 4a1 1 0 000 2h.01a1 1 0 000-2H7zm3 0a1 1 0 000 2h.01a1 1 0 000-2H10zm3 0a1 1 0 000 2h.01a1 1 0 000-2H13z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>My Classes</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Tasks & Submissions</h3>
+            <ul class="sidebar-menu">
+                {% if class_obj %}
+                <li>
+                    <a href="{% url 'create_task' class_id=class_obj.id %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_task' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM15 12a3 3 0 11-6 0 3 3 0 016 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Create Task</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'lecturer_all_tasks' %}" class="sidebar-link {% if request.resolver_match.url_name == 'lecturer_all_tasks' %}active{% endif %}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>All Tasks</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Grading & Management</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="#grading-section" class="sidebar-link">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M6.3 2.841A1.5 1.5 0 004 4.11V15.5a1.5 1.5 0 002.3 1.269l14-9.5a1.5 1.5 0 000-2.538L6.3 2.84z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Grade Submissions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#class-analytics-section" class="sidebar-link">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Class Analytics</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#class-students-section" class="sidebar-link">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Manage Students</span>
+                    </a>
+                </li>
+            </ul>
+        </div> -->
+
+        <div class="sidebar-section">
+            <h3 class="sidebar-section-title">Account</h3>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{% url 'logout' %}" class="sidebar-link sidebar-link-danger">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm14.707 9.293a1 1 0 00-1.414-1.414L9 12.586V3a1 1 0 10-2 0v9.586L4.707 10.293a1 1 0 00-1.414 1.414l6 6a1 1 0 001.414 0l6-6z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <p class="user-email">{{ current_user.email }}</p>
+            <span class="badge badge-primary">LECTURER</span>
+        </div>
+    </div>
+</div>

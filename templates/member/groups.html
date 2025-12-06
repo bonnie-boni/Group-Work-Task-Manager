@@ -1,0 +1,235 @@
+{% load custom_filters %}
+
+<!-- Your Groups & Tasks Section -->
+<section id="your-groups-section" class="dashboard-section">
+    <div class="section-header">
+        <h2 class="section-title">Your Groups & Tasks</h2>
+        <p class="section-subtitle">Manage your group memberships and assigned tasks</p>
+    </div>
+    <div class="section-content">
+        {% if member_of_groups %}
+        <div class="grid grid-cols-1 gap-6">
+            {% for group in member_of_groups %}
+            <div class="group-card">
+                <div class="group-header">
+                    <h3 class="group-title">{{ group.name }}</h3>
+                    <p class="group-subtitle">Class: {{ group.class_obj.name }}</p>
+                </div>
+
+                <div class="group-tasks">
+                    <h4 class="tasks-title">Assigned Tasks (Your Divisions)</h4>
+                    <div class="tasks-list">
+                        {% for task in group_tasks_with_divisions|get_item:group.id %}
+                        <div class="task-item">
+                            <div class="task-info">
+                                <h5 class="task-title">{{ task.title }}</h5>
+                                {% if task.description %}
+                                    <p class="task-description">{{ task.description|truncatewords:15 }}</p>
+                                {% endif %}
+
+                                {% for division in task.divisions %}
+                                    {% if division|get_item:'member_id' == request.session.user_id %}
+                                    <div class="task-division">
+                                        <p class="division-label">Your Part:</p>
+                                        <p class="division-text">{{ division|get_item:'part_description' }}</p>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if task.due_date %}
+                                <p class="task-due-date">Due: {{ task.due_date|date:"M d, Y" }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="task-actions">
+                                {% if task.has_submitted %}
+                                    <span class="status-badge status-submitted">Submitted</span>
+                                    <a href="{% url 'submit_task' task.id %}" class="btn btn-warning">
+                                        Edit Submission
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'submit_task' task.id %}" class="btn btn-success">
+                                        Submit
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="no-tasks-text">No tasks specifically divided for you yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p class="empty-state-text">You are not a member of any groups yet.</p>
+            <p class="empty-state-subtitle">Ask a group leader to whitelist your email to receive an invitation.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Group Management Section -->
+<section id="groups-management-section" class="dashboard-section">
+    <div class="section-header">
+        <h2 class="section-title">Group Management</h2>
+        <p class="section-subtitle">Create and manage your groups</p>
+    </div>
+    <div class="section-content">
+        {% if member_of_groups %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for group in member_of_groups %}
+            <div class="management-card">
+                <div class="management-card-header">
+                    <div class="management-card-info">
+                        <h3 class="management-card-title">{{ group.name }}</h3>
+                        <p class="management-card-subtitle">Class: {{ group.class_obj.name }}</p>
+                    </div>
+                    <span class="role-badge {% if group.leader.id == request.session.user_id %}role-leader{% else %}role-member{% endif %}">
+                        {% if group.leader.id == request.session.user_id %}Leader{% else %}Member{% endif %}
+                    </span>
+                </div>
+
+                <div class="management-card-members">
+                    <p class="members-label">Members ({{ group.members|length }})</p>
+                    <div class="members-list">
+                        {% for member in group.members|slice:":3" %}
+                        <span class="member-tag">{{ member.email|truncatechars:20 }}</span>
+                        {% endfor %}
+                        {% if group.members|length > 3 %}
+                        <span class="member-tag">+{{ group.members|length|add:"-3" }} more</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="management-card-actions">
+                    <a href="{% url 'group_detail' group.id %}" class="btn btn-secondary">
+                        View Details
+                    </a>
+                    {% if group.leader.id == request.session.user_id %}
+                    <button onclick="openEditGroupModal('{{ group.id }}', '{{ group.name }}')" class="btn btn-warning">
+                        Edit
+                    </button>
+                    <button onclick="deleteGroup('{{ group.id }}')" class="btn btn-danger">
+                        Delete
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg class="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            <p class="empty-state-text">No groups yet</p>
+            <p class="empty-state-subtitle">Create a group or wait for a group leader to invite you</p>
+            <a href="#create-group-modal" class="btn btn-primary">
+                Create Your First Group
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Create Group Modal -->
+<div id="create-group-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create New Group</h2>
+            <a href="#" class="modal-close">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </a>
+        </div>
+        <form method="POST" action="{% url 'create_group' %}" class="modal-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="group-name" class="form-label">Group Name</label>
+                <input type="text" id="group-name" name="name" required class="form-input" placeholder="e.g., Project Team A">
+            </div>
+            <div class="form-group">
+                <label for="group-class" class="form-label">Class</label>
+                <select id="group-class" name="class_obj" required class="form-select">
+                    <option value="">Select a class</option>
+                    {% for class in available_classes %}
+                    <option value="{{ class.id }}">{{ class.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="group-password" class="form-label">Group Password</label>
+                <input type="password" id="group-password" name="password" required minlength="4" maxlength="128" class="form-input" placeholder="Min 4 characters">
+                <p class="form-help">Members will need this password to join your group</p>
+            </div>
+            <div class="modal-actions">
+                <a href="#" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Group</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        overflow: auto;
+    }
+
+    .modal:target {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+        color: #6b7280;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-close:hover {
+        color: #111827;
+    }
+</style>
+
+<script>
+function openEditGroupModal(groupId, groupName) {
+    // This would open an edit modal - for now just a placeholder
+    alert('Edit group: ' + groupName);
+}
+
+function deleteGroup(groupId) {
+    if (confirm('Are you sure you want to delete this group?')) {
+        // This would delete the group via AJAX - for now just a placeholder
+        alert('Delete group: ' + groupId);
+    }
+}
+</script>

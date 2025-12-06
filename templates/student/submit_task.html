@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Task{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">{{ task.title }}</h1>
+            <p class="text-gray-600 mt-2">{{ task.description }}</p>
+        </div>
+
+        {% if member_part %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h2 class="font-bold text-blue-900 mb-2">Your Assigned Part:</h2>
+            <p class="text-blue-800">{{ member_part }}</p>
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Your Answer</label>
+                    {{ form.text_answer }}
+                    <p class="text-sm text-gray-500 mt-2">
+                        Your text will be automatically converted to PDF
+                    </p>
+                </div>
+
+                {% if existing_submission %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-800">
+                        <strong>Note:</strong> You have already submitted this task. Submitting again will replace your previous submission.
+                    </p>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+                    Submit Answer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

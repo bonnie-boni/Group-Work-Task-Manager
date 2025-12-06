@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}My Groups{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">My Groups</h1>
+            <p class="text-gray-600 mt-2">Manage your group memberships and leadership</p>
+        </div>
+
+        <!-- Group Invitations Section -->
+        {% if invited_groups %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.23 12.004a2.236 2.236 0 0 0 .177-1.37l-1.27-7.02a.5.5 0 0 0-.494-.43H11.33a.5.5 0 0 0-.494.43l-1.27 7.02a2.236 2.236 0 0 0 .177 1.37l.666 1.248a.5.5 0 0 0 .894 0l.666-1.248z"/>
+                    <path fill-rule="evenodd" d="M12 2.5a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 1 0v-2a.5.5 0 0 0-.5-.5z" clip-rule="evenodd"/>
+                </svg>
+                Group Invitations
+            </h2>
+            <p class="text-gray-600 mb-4">You have pending invitations to join these groups</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for group in invited_groups %}
+                <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <h3 class="font-semibold text-gray-900">{{ group.name }}</h3>
+                    <p class="text-sm text-gray-600 mb-3">Class: {{ group.class_obj.name }}</p>
+                    <a href="{% url 'accept_group_invitation' group.id %}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block">
+                        Accept Invitation
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Groups I Lead Section -->
+        {% if led_groups %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V5zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1v-2z" clip-rule="evenodd"/>
+                </svg>
+                Groups I Lead
+            </h2>
+            <p class="text-gray-600 mb-4">Groups where you are the leader</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for group in led_groups %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <h3 class="font-semibold text-gray-900">{{ group.name }}</h3>
+                    <p class="text-sm text-gray-600 mb-2">Class: {{ group.class_obj.name }}</p>
+                    <p class="text-sm text-gray-500 mb-3">Members: {{ group.members|length }}</p>
+                    <a href="{% url 'group_detail' group.id %}"
+                       class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block">
+                        Manage Group
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Groups I'm Member Of Section -->
+        {% if member_only_groups %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V5zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 0a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1v-2z" clip-rule="evenodd"/>
+                </svg>
+                Groups I'm Member Of
+            </h2>
+            <p class="text-gray-600 mb-4">Groups where you are a member</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for group in member_only_groups %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <h3 class="font-semibold text-gray-900">{{ group.name }}</h3>
+                    <p class="text-sm text-gray-600 mb-2">Class: {{ group.class_obj.name }}</p>
+                    <p class="text-sm text-gray-500 mb-3">Leader: {{ group.leader.email }}</p>
+                    <a href="{% url 'group_detail' group.id %}"
+                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block">
+                        View Group
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Create Group Section -->
+        {% if available_classes %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Create New Group</h2>
+            <p class="text-gray-600 mb-4">Start a new group and become its leader</p>
+            <a href="{% url 'create_group' %}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold inline-block">
+                + Create Group
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Empty State -->
+        {% if not led_groups and not member_only_groups and not invited_groups %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No groups yet</h3>
+            <p class="text-gray-500 mb-6">Join a class and create or join groups to get started</p>
+            <a href="{% url 'join_class' %}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold inline-block">
+                Join a Class
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

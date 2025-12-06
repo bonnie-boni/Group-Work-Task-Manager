@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Join Class{% endblock %}
+
+{% block content %}
+<div class="student-dashboard-layout">
+    <!-- Sidebar Navigation -->
+    {% include 'partials/student_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="student-main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Join a Class</h1>
+            <p class="text-gray-600 mt-2">Enter class details to join</p>
+        </div>
+
+        <!-- Form Content -->
+        <div class="max-w-md">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label for="class_name" class="block text-sm font-medium text-gray-700">Class Name</label>
+                        {{ form.class_name }}
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Class Password</label>
+                        {{ form.password }}
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">
+                        Join Class
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
